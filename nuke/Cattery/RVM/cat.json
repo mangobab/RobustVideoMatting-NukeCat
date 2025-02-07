@@ -1,0 +1,13 @@
+{
+    "minimum_nuke_version_required": 14.1,
+    "version": 1,
+    "category": "Segmentation",
+    "description": "RobustVideoMatting - https://github.com/mangobab/RobustVideoMatting-NukeCat",
+    "cats": [
+        {
+            "filepath": "RVM.gizmo",
+            "name": "RVM_v1",
+            "icon": "RVM_icon_x48.png"
+        }
+    ]
+}

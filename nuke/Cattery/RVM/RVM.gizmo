@@ -1,0 +1,51 @@
+#! /opt/Nuke14.1v5/libnuke-14.1.5.so -nx
+version 14.1 v5
+Gizmo {
+ addUserKnob {20 User l RVM t RobustVideoMatting}
+ addUserKnob {26 "" l "Local GPU:" T ""}
+ addUserKnob {26 gpuName l "" -STARTLINE T "NVIDIA GeForce RTX 3060"}
+ addUserKnob {41 useGPUIfAvailable l "Use GPU if available" T Inference1.useGPUIfAvailable}
+ addUserKnob {26 ""}
+ addUserKnob {41 in_colorspace l input T OCIOColorSpace1.in_colorspace}
+ addUserKnob {41 out_colorspace l output T OCIOColorSpace1.out_colorspace}
+ addUserKnob {41 halfPrecision l "Optimize for Speed and Memory" T Inference1.halfPrecision}
+ addUserKnob {20 info}
+ addUserKnob {26 author l "" +STARTLINE T "<h2>RVM (Robust Video Matting)</h2>\n<p>An adaptation of <a href=\"https://github.com/PeterL1n/RobustVideoMatting\" target=\"_blank\" style=\"color: white; text-decoration: none;\">Robust Video Matting</a> for Nuke.</p>\n<p>Uses the <strong>rvm_mobilenetv3.pth</strong> model.</p>\n<p><strong>Version:</strong> 1.0.1</p>\n<p><strong>Last Updated:</strong> Feb.07.2025</p>\n<hr>\n<p><strong>Dean Kwon</strong><br>\n<a href=\"mailto:deankwon724@gmail.com\" style=\"color: white; text-decoration: none;\">deankwon724@gmail.com</a></p>\n"}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 519
+  ypos -346
+ }
+ OCIOColorSpace {
+  in_colorspace matte_paint
+  out_colorspace color_picking
+  name OCIOColorSpace1
+  xpos 519
+  ypos -247
+ }
+set N159c1130 [stack 0]
+ Viewer {
+  frame_range 1-724
+  viewerProcess "Rec.709 (ACES)"
+  monitorOutNDISenderName "NukeX - untitled - Viewer1"
+  name Viewer1
+  xpos 730
+  ypos -154
+ }
+push $N159c1130
+ Inference {
+  modelFile "\[lsearch -inline \[plugins -all RVM_Nuke_v1.cat] *.cat]"
+  serialiseKnob {}
+  name Inference1
+  selected true
+  xpos 519
+  ypos -202
+ }
+ Output {
+  name Output1
+  xpos 519
+  ypos -99
+ }
+end_group

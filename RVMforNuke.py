@@ -1,17 +1,23 @@
 import logging
 import torch
-#from model.model import MattingNetwork
+import torch.nn.functional as F
+from model import MattingNetwork
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
-PRETRAINED_MODEL = "./model/rvm_mobilenetv3_scripted.pt"
-TORCHSCRIPT_MODEL = "./model/rvm_mobilenetv3_for_nuke.pt"
+#PRETRAINED_MODEL = "./model/rvm_mobilenetv3_scripted.pt"
+TORCHSCRIPT_MODEL = "./Cattery/RVM_Nuke.pt"
+
+
 
 def load_rvm():
     """Load the Torchscript MattingNetwork model"""
-    model = torch.jit.load(PRETRAINED_MODEL)
-    model.eval()
+
+    model = MattingNetwork('mobilenetv3').eval().cuda()  # or "resnet50"
+    model.load_state_dict(torch.load('./model_weights/rvm_mobilenetv3.pth'))
+    # model = torch.jit.load(PRETRAINED_MODEL)
+    # model.eval()
 
     if torch.cuda.is_available():
         model = model.to("cuda")
@@ -45,6 +51,13 @@ class MattingModelNuke(torch.nn.Module):
         b, c, h, w = x.shape  # Nuke provides (1, inChan, inH, inW)
         dtype = x.dtype
         device = torch.device("cuda") if x.is_cuda else torch.device("cpu")
+
+        # Padding
+        padding_factor = 14
+        pad_h = ((h - 1) // padding_factor + 1) * padding_factor
+        pad_w = ((w - 1) // padding_factor + 1) * padding_factor
+        pad_dims = (0, pad_w - w, 0, pad_h - h)
+        x = F.pad(x, pad_dims)
 
         # Ensure input is normalized for RVM (expects 3-channel RGB)
         if c == 1:
