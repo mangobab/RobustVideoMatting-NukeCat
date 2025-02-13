@@ -1,6 +1,7 @@
 #! /opt/Nuke14.1v5/libnuke-14.1.5.so -nx
 version 14.1 v5
 Gizmo {
+ tile_color 0xc6d03ff
  addUserKnob {20 User l RVM t RobustVideoMatting}
  addUserKnob {26 "" l "Local GPU:" T ""}
  addUserKnob {26 gpuName l "" -STARTLINE T "NVIDIA GeForce RTX 3060"}
@@ -12,40 +13,118 @@ Gizmo {
  addUserKnob {20 info}
  addUserKnob {26 author l "" +STARTLINE T "<h2>RVM (Robust Video Matting)</h2>\n<p>An adaptation of <a href=\"https://github.com/PeterL1n/RobustVideoMatting\" target=\"_blank\" style=\"color: white; text-decoration: none;\">Robust Video Matting</a> for Nuke.</p>\n<p>Uses the <strong>rvm_mobilenetv3.pth</strong> model.</p>\n<p><strong>Version:</strong> 1.0.1</p>\n<p><strong>Last Updated:</strong> Feb.07.2025</p>\n<hr>\n<p><strong>Dean Kwon</strong><br>\n<a href=\"mailto:deankwon724@gmail.com\" style=\"color: white; text-decoration: none;\">deankwon724@gmail.com</a></p>\n"}
 }
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x8e8e3800
+  label "downsize the image "
+  note_font_size 42
+  xpos 500
+  ypos -546
+  bdheight 110
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x388e8e00
+  label "back to original size"
+  note_font_size 42
+  xpos 500
+  ypos -18
+  bdheight 110
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode3
+  tile_color 0x8e388e00
+  label "the overall effective downsampling factor is 5×2×2×2 = 40 comes directly from the RVM model’s feature map sizes. \nThe MobileNetV3 backbone (as modified in RVM) is engineered to first downsample by a factor of 5 and then by 2 at each subsequent stage, \nwhich mathematically yields a factor of 40."
+  note_font_size 20
+  xpos 500
+  ypos -374
+  bdwidth 1291
+  bdheight 138
+ }
  Input {
   inputs 0
   name Input1
-  xpos 519
-  ypos -346
+  xpos 510
+  ypos -586
+ }
+set N12ed7420 [stack 0]
+ Reformat {
+  type scale
+  scale {{"(min(input.width, input.height) == input.width) ? (512)/input.width :  (512)/input.height"} {"(min(input.width, input.height) == input.width) ? (512)/input.width :  (512)/input.height"}}
+  name Reformat1
+  xpos 510
+  ypos -480
+ }
+ Dot {
+  name Dot1
+  xpos 544
+  ypos -438
  }
  OCIOColorSpace {
   in_colorspace matte_paint
   out_colorspace color_picking
   name OCIOColorSpace1
-  xpos 519
-  ypos -247
+  xpos 510
+  ypos -405
  }
-set N159c1130 [stack 0]
- Viewer {
-  frame_range 1-724
-  viewerProcess "Rec.709 (ACES)"
-  monitorOutNDISenderName "NukeX - untitled - Viewer1"
-  name Viewer1
-  xpos 730
-  ypos -154
+set N12eebf80 [stack 0]
+ NoOp {
+  name NoOp1
+  xpos 620
+  ypos -274
+  addUserKnob {20 User}
+  addUserKnob {16 padding_r}
+  padding_r {{"((40 - (input.width % 40)) % 40)"}}
+  addUserKnob {16 padding_t}
+  padding_t {{"((40 - (input.height % 40)) % 40)"}}
  }
-push $N159c1130
+push $N12ed7420
+push $N12eebf80
+ Crop {
+  box {0 0 {"input.width + NoOp1.padding_r"} {"input.height + NoOp1.padding_t"}}
+  name Crop3
+  xpos 510
+  ypos -274
+ }
  Inference {
   modelFile "\[lsearch -inline \[plugins -all RVM_Nuke_v1.cat] *.cat]"
+  halfPrecision true
   serialiseKnob {}
   name Inference1
-  selected true
-  xpos 519
-  ypos -202
+  xpos 510
+  ypos -178
+ }
+ Crop {
+  box {0 0 {"Crop3.box.r - NoOp1.padding_r"} {"Crop3.box.t - NoOp1.padding_t"}}
+  name Crop1
+  xpos 510
+  ypos -106
+ }
+ Reformat {
+  type scale
+  scale {{Input1.width/input.box.r} {Input1.height/input.box.t}}
+  resize fit
+  name Reformat2
+  xpos 510
+  ypos 38
  }
  Output {
   name Output1
-  xpos 519
-  ypos -99
+  selected true
+  xpos 510
+  ypos 134
+ }
+ Viewer {
+  inputs 2
+  frame 1044
+  frame_range 1001-1089
+  viewerProcess "Rec.709 (ACES)"
+  monitorOutNDISenderName "NukeX - untitled - Viewer1"
+  name Viewer1
+  xpos 1060
+  ypos -58
  }
 end_group
